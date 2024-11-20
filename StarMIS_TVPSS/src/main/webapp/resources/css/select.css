@@ -24,7 +24,7 @@
 
 .floating-select-label {
     position: absolute;
-    top: calc(45% - 8px);
+    top: 50%;
     left: 14px;
     transform: translateY(-50%);
     background-color: var(--white);
