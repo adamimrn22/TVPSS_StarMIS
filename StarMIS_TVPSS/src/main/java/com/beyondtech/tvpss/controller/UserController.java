@@ -8,7 +8,7 @@ public class UserController {
 
 	@RequestMapping("/")
 	public String home() {
-		return "input";
+		return "form-contoh";
 	}
 
 }
