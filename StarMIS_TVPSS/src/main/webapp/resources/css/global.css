@@ -1,0 +1,18 @@
+/* === global.css === */
+/* Base Theme Variables */
+:root {
+    --primary: #515B92;
+    /* Primary color */
+    --error: #d32f2f;
+    /* Error color */
+    --gray-600: #666;
+    /* Dark gray */
+    --gray-300: #c4c4c4;
+    /* Light gray */
+    --gray-200: #ddd;
+    /* Disabled border */
+    --gray-100: #f5f5f5;
+    /* Disabled background */
+    --white: #ffffff;
+    /* White color */
+}

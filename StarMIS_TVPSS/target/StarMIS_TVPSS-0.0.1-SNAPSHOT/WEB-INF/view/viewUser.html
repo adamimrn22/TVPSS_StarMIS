@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Date Picker</title>
+    <link rel="stylesheet" href="global.css">
+    <link rel="stylesheet" href="datepicker.css">
+    <head>
+    <!-- Update your resource paths to use the mapped URLs -->
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/global.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/static/css/datepicker.css">
+</head>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="date-picker-container">
+
+        <div class="form-group">
+            <input class="floating-datepicker" type="text" id="dateInput" placeholder="" readonly>
+            <label class="floating-datepicker-label">Select a date</label>
+            <span class="form-helper">Helper text</span>
+        </div>
+        <div id="datePicker" class="custom-date-picker">
+            <div class="date-picker-header">
+                <button id="prevMonth">&lt;</button>
+                <span id="monthYearDisplay"></span>
+                <button id="nextMonth">&gt;</button>
+            </div>
+            <div id="calendarView">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody id="datePickerBody"></tbody>
+                </table>
+            </div>
+            <div id="yearView" class="hidden year-picker"></div>
+        </div>
+    </div>
+
+    <script>
+        const dateInput = document.getElementById('dateInput');
+        const datePicker = document.getElementById('datePicker');
+        const monthYearDisplay = document.getElementById('monthYearDisplay');
+        const datePickerBody = document.getElementById('datePickerBody');
+        const prevMonth = document.getElementById('prevMonth');
+        const nextMonth = document.getElementById('nextMonth');
+        const calendarView = document.getElementById('calendarView');
+        const yearView = document.getElementById('yearView');
+
+        let currentDate = new Date();
+        let yearRangeStart;
+
+        // Render the calendar
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            monthYearDisplay.textContent = `${currentDate.toLocaleString('default', { month: 'long' })} ${year}`;
+
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let daysHTML = '';
+            let dayCounter = 1;
+
+            // Add empty cells before the first day
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                daysHTML += '<td class="disabled"></td>';
+            }
+
+            // Add days of the month
+            for (let i = firstDayOfMonth; i < 7 * 6; i++) {
+                if (i >= firstDayOfMonth && dayCounter <= daysInMonth) {
+                    daysHTML += `<td data-date="${year}-${String(month + 1).padStart(2, '0')}-${String(dayCounter).padStart(2, '0')}">${dayCounter}</td>`;
+                    dayCounter++;
+                } else {
+                    daysHTML += '<td class="disabled"></td>';
+                }
+                if ((i + 1) % 7 === 0) {
+                    daysHTML += '</tr><tr>';
+                }
+            }
+
+            datePickerBody.innerHTML = `<tr>${daysHTML}</tr>`;
+        }
+
+        // Render the year picker
+        function renderYearPicker() {
+            const rangeSize = 12; // Number of years to show
+            yearRangeStart = yearRangeStart || currentDate.getFullYear() - 6; // Default range
+            let yearsHTML = '';
+
+            for (let year = yearRangeStart; year < yearRangeStart + rangeSize; year++) {
+                yearsHTML += `<div data-year="${year}" class="${year === currentDate.getFullYear() ? 'selected' : ''}">${year}</div>`;
+            }
+
+            yearView.innerHTML = yearsHTML;
+        }
+
+        // Switch to year view
+        monthYearDisplay.addEventListener('click', () => {
+            if (!calendarView.classList.contains('hidden')) {
+                calendarView.classList.add('hidden');
+                yearView.classList.remove('hidden');
+                renderYearPicker();
+            } else {
+                calendarView.classList.remove('hidden');
+                yearView.classList.add('hidden');
+                renderCalendar();
+            }
+        });
+
+        // Select a year and switch back to the calendar view
+        yearView.addEventListener('click', (e) => {
+            if (e.target.dataset.year) {
+                currentDate.setFullYear(e.target.dataset.year);
+                yearView.classList.add('hidden');
+                calendarView.classList.remove('hidden');
+                renderCalendar();
+            }
+        });
+
+        // Navigate months and years
+        function updateNavigation() {
+            prevMonth.addEventListener('click', () => {
+                if (!calendarView.classList.contains('hidden')) {
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderCalendar();
+                } else {
+                    yearRangeStart -= 12; // Move back by 12 years when in the year view
+                    renderYearPicker();
+                }
+            });
+
+            nextMonth.addEventListener('click', () => {
+                if (!calendarView.classList.contains('hidden')) {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderCalendar();
+                } else {
+                    yearRangeStart += 12; // Move forward by 12 years when in the year view
+                    renderYearPicker();
+                }
+            });
+        }
+
+        // Open the date picker
+        dateInput.addEventListener('click', () => {
+            datePicker.style.display = datePicker.style.display === 'block' ? 'none' : 'block';
+            renderCalendar();
+            updateNavigation();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.date-picker-container')) {
+                datePicker.style.display = 'none';
+            }
+        });
+
+        // Select a date
+        datePickerBody.addEventListener('click', (e) => {
+            if (e.target.tagName === 'TD' && e.target.dataset.date) {
+                dateInput.value = e.target.dataset.date;
+                datePicker.style.display = 'none';
+            }
+        });
+
+        // Initialize the date picker
+        renderCalendar();
+        updateNavigation();
+    </script>
+
+</body>
+
+</html>
